@@ -26,6 +26,7 @@ class InterpretAgent:
         return ChatQwen(
             model=os.getenv("DASHSCOPE_MODEL", "Qwen/Qwen3.5-122B-A10B"),
             extra_body={"enable_thinking": False},
+            max_tokens=512
         )
 
     async def interpretation_node(
