@@ -3,7 +3,9 @@ from typing import Annotated, Optional
 from pydantic import BaseModel, Field
 
 
-class InterpretRequest(BaseModel):
+class BaseRequest(BaseModel):
+    """所有接口的共通请求参数"""
+
     trace_id: Annotated[
         Optional[str],
         Field(description="请求id，追踪请求链路。如果为空，则会生成一个。"),
@@ -20,6 +22,9 @@ class InterpretRequest(BaseModel):
             description="发话id。用户每次发话 `turn_id` 应唯一，同一次发话下的 `turn_id` 应相同。如果为空，则会生成一个。"
         ),
     ] = None
+
+
+class InterpretRequest(BaseRequest):
     policy_content: Annotated[
         Optional[str],
         Field(
@@ -34,21 +39,5 @@ class InterpretRequest(BaseModel):
     ] = None
 
 
-class ChatRequest(BaseModel):
-    trace_id: Annotated[
-        Optional[str],
-        Field(description="请求id，追踪请求链路。如果为空，则会生成一个。"),
-    ]
-    conversation_id: Annotated[
-        Optional[str],
-        Field(
-            description="会话id。用户每个会话的 `conversation_id` 应唯一，同一个会话下不同发话（`turn_id`）的 `conversation_id` 应相同。如果为空，则会生成一个。"
-        ),
-    ]
-    turn_id: Annotated[
-        Optional[str],
-        Field(
-            description="发话id。用户每次发话 `turn_id` 应唯一，同一次发话下的 `turn_id` 应相同。如果为空，则会生成一个。"
-        ),
-    ]
+class ChatRequest(BaseRequest):
     question: Annotated[str, Field(description="用户发话。")]

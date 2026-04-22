@@ -25,12 +25,14 @@ class InterpretAgent:
         """获取本智能体使用的LLM对象。目前使用Qwen，不启用思考模式。"""
         return ChatQwen(
             model=os.getenv("DASHSCOPE_MODEL", "Qwen/Qwen3.5-122B-A10B"),
-            extra_body={"enable_thinking": False},
-            max_tokens=512
+            extra_body={"enable_thinking": False, "top_k": 20, "repetition_penalty": 1.0},
+            max_tokens=512,
+            temperature=0.7,
+            top_p=0.8
         )
 
     async def interpretation_node(
-        self, state: PolicyState, config: RunnableConfig
+            self, state: PolicyState, config: RunnableConfig
     ) -> dict:
         """
         解读节点：政策原文解读。

@@ -10,6 +10,21 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # ==========================
+    # 日志配置
+    # ==========================
+    LOG_LEVEL: str = Field(default="INFO", description="日志输出级别")
+    LOG_FORMAT: str = Field(
+        default="text",
+        description="日志格式模式，支持 'text' (适合本地查看) 或 'json' (适合ELK等日志系统收集)",
+    )
+    LOG_FILE_PATH: str = Field(default="logs/app.log", description="日志文件保存路径")
+    LOG_ROTATION: str = Field(
+        default="100 MB",
+        description="日志文件轮转条件（大小或是时间，例如 '100 MB' 或 '00:00'）",
+    )
+    LOG_RETENTION: str = Field(default="30 days", description="日志保留策略")
+
+    # ==========================
     # 监控配置 (LangSmith)
     # ==========================
     LANGSMITH_TRACING: bool = Field(
@@ -58,5 +73,3 @@ class Settings(BaseSettings):
 
 # 实例化单例配置对象，建议全项目统一导入此实例
 settings = Settings()
-
-print(settings.model_dump_json())
