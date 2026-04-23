@@ -1,9 +1,13 @@
 import asyncio
+from typing import Optional
 
+from fastapi import HTTPException
 from langchain_core.messages import HumanMessage
 from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import ClientDisconnect
 
+from app.repositories import PolicyRepository
 from app.schemas.requests import ChatRequest, InterpretRequest
 from app.utils import html_to_markdown
 from app.workflow.graph import build_interpret_graph
@@ -13,17 +17,57 @@ graph_app = build_interpret_graph()
 
 class WorkflowRunner:
     @staticmethod
-    async def generate_parse_stream(req: InterpretRequest):
+    async def _resolve_policy_content(
+        req: InterpretRequest,
+        db_session: Optional[AsyncSession] = None,
+    ) -> str:
+        """
+        解析政策内容，遵循优先级：
+        1. 如果 policy_content 存在，直接使用（优先级最高）
+        2. 如果 policy_id 存在，从数据库查询
+        3. 两者都不存在，抛出异常
+        """
+        if req.policy_content:
+            logger.info("Using provided policy_content directly (priority: high)")
+            return html_to_markdown(req.policy_content)
+
+        if req.policy_id is not None:
+            if not db_session:
+                logger.error("policy_id provided but no database session available")
+                raise HTTPException(
+                    status_code=500,
+                    detail="数据库连接未初始化，无法通过 policy_id 查询政策",
+                )
+
+            try:
+                policy_id = int(req.policy_id)
+            except (ValueError, TypeError):
+                logger.error("Invalid policy_id format: {}", req.policy_id)
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"policy_id 格式错误: {req.policy_id}",
+                )
+
+            logger.info("Querying policy from database by id: {}", policy_id)
+            repo = PolicyRepository(db_session)
+            content = await repo.get_content_by_id(policy_id)
+            return html_to_markdown(content)
+
+        logger.error("Neither policy_content nor policy_id provided")
+        raise HTTPException(
+            status_code=400,
+            detail="policy_content 和 policy_id 至少需要提供一个",
+        )
+
+    @staticmethod
+    async def generate_parse_stream(
+        req: InterpretRequest,
+        db_session: Optional[AsyncSession] = None,
+    ):
         logger.info("Initializing parse stream for conversation: {}", req.conversation_id)
         config = {"configurable": {"thread_id": req.conversation_id}}
 
-        # 通过模型层从数据库获取真实的原文文本
-        # policy_text = await get_policy_content_by_id(db_session, req.policy_id)
-
-        # TODO: 补全查库
-        policy_content = ""
-        if req.policy_content:
-            policy_content = html_to_markdown(req.policy_content)
+        policy_content = await WorkflowRunner._resolve_policy_content(req, db_session)
         state_input = {"policy_content": policy_content}
 
         try:

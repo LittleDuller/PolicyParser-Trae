@@ -1,10 +1,12 @@
 import json
 from typing import AsyncGenerator
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.dependencies import get_db_session
 from app.schemas import ChatRequest, InterpretRequest
 from app.services.workflow_runner import WorkflowRunner
 
@@ -33,7 +35,10 @@ async def sse_wrapper(
         }
     },
 )
-async def parse_policy(req: InterpretRequest):
+async def parse_policy(
+    req: InterpretRequest,
+    db_session: AsyncSession = Depends(get_db_session),
+):
     """
     提交政策进行异步解析解读。采用 SSE 流式返回。
     """
@@ -42,7 +47,7 @@ async def parse_policy(req: InterpretRequest):
         req.policy_id,
         req.conversation_id,
     )
-    generator = WorkflowRunner.generate_parse_stream(req)
+    generator = WorkflowRunner.generate_parse_stream(req, db_session)
     return StreamingResponse(sse_wrapper(generator), media_type="text/event-stream")
 
 
