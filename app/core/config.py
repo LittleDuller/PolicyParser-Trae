@@ -27,11 +27,11 @@ class Settings(BaseSettings):
     # ==========================
     # 数据库配置 (MySQL)
     # ==========================
-    DB_HOST: str = Field(default="192.168.0.200", description="数据库主机地址")
+    DB_HOST: str = Field(default="localhost", description="数据库主机地址")
     DB_PORT: int = Field(default=3306, description="数据库端口")
-    DB_USER: str = Field(default="idsp_dev", description="数据库用户名")
+    DB_USER: str = Field(default="root", description="数据库用户名")
     DB_PASSWORD: SecretStr = Field(default="", description="数据库密码")
-    DB_NAME: str = Field(default="idsp_dev", description="数据库名称")
+    DB_NAME: str = Field(default="", description="数据库名称")
     DB_ECHO: bool = Field(default=False, description="是否打印 SQL 语句（调试用）")
     DB_POOL_SIZE: int = Field(default=5, description="连接池大小")
     DB_MAX_OVERFLOW: int = Field(default=10, description="连接池最大溢出数")
