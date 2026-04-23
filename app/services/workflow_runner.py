@@ -1,5 +1,5 @@
 import asyncio
-from typing import Optional
+from typing import Optional, Union
 
 from fastapi import HTTPException
 from langchain_core.messages import HumanMessage
@@ -8,17 +8,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import ClientDisconnect
 
 from app.repositories import PolicyRepository
-from app.schemas.requests import ChatRequest, InterpretRequest
+from app.schemas.requests import ChatRequest, ClassificationRequest, InterpretRequest
 from app.utils import html_to_markdown
-from app.workflow.graph import build_interpret_graph
+from app.workflow.agents.classification_agent import ClassificationResult
+from app.workflow.graph import build_classification_graph, build_interpret_graph
 
 graph_app = build_interpret_graph()
+classification_graph = build_classification_graph()
 
 
 class WorkflowRunner:
     @staticmethod
     async def _resolve_policy_content(
-        req: InterpretRequest,
+        req: Union[InterpretRequest, ClassificationRequest],
         db_session: Optional[AsyncSession] = None,
     ) -> str:
         """
@@ -116,4 +118,29 @@ class WorkflowRunner:
             raise
         except Exception as e:
             logger.exception("Parse stream failed for conversation {}: {}", req.conversation_id, str(e))
+            raise
+
+    @staticmethod
+    async def run_classification(
+        req: ClassificationRequest,
+        db_session: Optional[AsyncSession] = None,
+    ) -> ClassificationResult:
+        logger.info("Initializing classification for conversation: {}", req.conversation_id)
+        config = {"configurable": {"thread_id": req.conversation_id}}
+
+        policy_content = await WorkflowRunner._resolve_policy_content(req, db_session)
+        state_input = {"policy_content": policy_content}
+
+        try:
+            result = await classification_graph.ainvoke(state_input, config)
+            classification_result: ClassificationResult = result["classification"]
+            logger.info(
+                "Successfully completed classification for conversation: {}, category: {}, confidence: {}",
+                req.conversation_id,
+                classification_result.category,
+                classification_result.confidence
+            )
+            return classification_result
+        except Exception as e:
+            logger.exception("Classification failed for conversation {}: {}", req.conversation_id, str(e))
             raise
