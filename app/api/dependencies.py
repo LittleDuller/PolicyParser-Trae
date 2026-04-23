@@ -1,7 +1,4 @@
-import uuid
-from typing import Annotated, AsyncGenerator, Optional
-
-from fastapi import Header, Response
+from typing import AsyncGenerator
 
 
 async def get_db_session() -> AsyncGenerator:
@@ -16,12 +13,3 @@ async def get_db_session() -> AsyncGenerator:
     finally:
         pass
         # await session.close()
-
-
-async def get_trace_id(
-    response: Response, x_trace_id: Annotated[Optional[str], Header()] = None
-):
-    x_trace_id = x_trace_id or uuid.uuid4().hex
-    response.headers["X-Trace-Id"] = x_trace_id
-
-    return x_trace_id

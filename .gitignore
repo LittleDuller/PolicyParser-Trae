@@ -26,6 +26,7 @@ wheels/
 # Else
 data/*
 docs/
+*.log
 
 # 排除的文件
 !.gitkeep

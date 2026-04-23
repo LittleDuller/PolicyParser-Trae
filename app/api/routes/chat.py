@@ -19,17 +19,46 @@ async def sse_wrapper(
         yield f"data: {json.dumps({'content': chunk}, ensure_ascii=False)}\n\n"
     yield "data: [DONE]\n\n"
 
-@router.post("/api/v1/policy/interpret")
+
+@router.post(
+    "/api/v1/policy/interpret",
+    responses={
+        200: {
+            "description": "SSE 流式返回。返回内容为包含 `content` 字段的 JSON 字符串包裹在 `data: ` 中。",
+            "content": {
+                "text/event-stream": {
+                    "example": 'data: {"content": "政策解读文本片段"}\n\ndata: [DONE]\n\n'
+                }
+            },
+        }
+    },
+)
 async def parse_policy(req: InterpretRequest):
     """
     提交政策进行异步解析解读。采用 SSE 流式返回。
     """
-    logger.info("Starting policy interpret for policy_id={} conversation_id={}", req.policy_id, req.conversation_id)
+    logger.info(
+        "Starting policy interpret for policy_id={} conversation_id={}",
+        req.policy_id,
+        req.conversation_id,
+    )
     generator = WorkflowRunner.generate_parse_stream(req)
     return StreamingResponse(sse_wrapper(generator), media_type="text/event-stream")
 
 
-@router.post("/api/v1/policy/chat")
+@router.post(
+    "/api/v1/policy/chat",
+    responses={
+        200: {
+            "description": "SSE 流式返回。返回内容为包含 `content` 字段的 JSON 字符串包裹在 `data: ` 中。",
+            "content": {
+                "text/event-stream": {
+                    "example": 'data: {"content": "针对你的问题，解答如下..."}\n\ndata: [DONE]\n\n'
+                }
+            },
+        }
+    },
+)
 async def chat_policy(req: ChatRequest):
     """
     针对已解析的政策继续提问。采用 SSE 流式返回。
