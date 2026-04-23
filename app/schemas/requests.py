@@ -33,3 +33,18 @@ class InterpretRequest(BaseRequest):
 
 class ChatRequest(BaseRequest):
     question: Annotated[str, Field(description="用户发话。")]
+
+
+class ClassificationRequest(BaseRequest):
+    policy_content: Annotated[
+        Optional[str],
+        Field(
+            description="政策文件原文。`policy_id` 和 `policy_content` 至少一个不为空，都存在时，优先使用 `policy_content`。"
+        ),
+    ] = None
+    policy_id: Annotated[
+        Optional[str] | int,
+        Field(
+            description="政策文件在数据库中的id。`policy_id` 和 `policy_content` 至少一个不为空，都存在时，优先使用 `policy_content`。"
+        ),
+    ] = None

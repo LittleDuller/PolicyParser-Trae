@@ -1,3 +1,3 @@
-from app.schemas.requests import ChatRequest, InterpretRequest
+from app.schemas.requests import ChatRequest, ClassificationRequest, InterpretRequest
 
-__all__ = ["ChatRequest", "InterpretRequest"]
+__all__ = ["ChatRequest", "ClassificationRequest", "InterpretRequest"]

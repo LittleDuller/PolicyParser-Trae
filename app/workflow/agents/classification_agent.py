@@ -28,7 +28,6 @@ class IndustryCategory(str, Enum):
 class ClassificationResult(BaseModel):
     category: IndustryCategory = Field(description="政策主要影响的行业分类")
     confidence: float = Field(description="分类置信度，0.0-1.0之间")
-    reason: str = Field(description="分类依据，说明为什么将该政策归类到该行业")
 
 
 class ClassificationState(PolicyState):

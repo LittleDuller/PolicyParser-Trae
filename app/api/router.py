@@ -2,7 +2,7 @@ from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, Header
 
-from app.api.routes import chat, health
+from app.api.routes import chat, classification, health
 
 async def global_trace_header(
     x_trace_id: Annotated[
@@ -16,3 +16,4 @@ api_router = APIRouter(dependencies=[Depends(global_trace_header)])
 
 api_router.include_router(health.router, tags=["System Health"])
 api_router.include_router(chat.router, tags=["Policy Chat"])
+api_router.include_router(classification.router, tags=["Policy Classification"])
