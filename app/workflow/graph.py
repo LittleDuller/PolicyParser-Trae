@@ -3,6 +3,7 @@ from typing import Literal
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
+from app.workflow.agents.classification_agent import ClassificationAgent, ClassificationState
 from app.workflow.agents.interpret_agent import InterpretAgent
 from app.workflow.state import PolicyState
 
@@ -40,6 +41,24 @@ def build_interpret_graph():
     # 设置链路与路由
     workflow.add_edge(START, "interpretation_node")
     workflow.add_edge("interpretation_node", END)
+
+    # 编译图并挂载 MemorySaver 用于隔离请求上下文日志
+    memory = MemorySaver()
+
+    graph = workflow.compile(checkpointer=memory)
+    return graph
+
+
+def build_classification_graph():
+    agent = ClassificationAgent()
+    workflow = StateGraph(ClassificationState)
+
+    # 注册节点
+    workflow.add_node("classification_node", agent.classification_node)
+
+    # 设置链路与路由
+    workflow.add_edge(START, "classification_node")
+    workflow.add_edge("classification_node", END)
 
     # 编译图并挂载 MemorySaver 用于隔离请求上下文日志
     memory = MemorySaver()
