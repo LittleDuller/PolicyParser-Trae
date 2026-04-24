@@ -1,3 +1,8 @@
+import os
+
+os.environ["DB_POOL_PRE_PING"] = "false"
+os.environ["DB_POOL_CLASS"] = "null"
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession

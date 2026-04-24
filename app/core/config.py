@@ -2,7 +2,7 @@
 加载环境变量与最佳实践配置
 """
 
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     DB_MAX_OVERFLOW: int = Field(default=10, description="连接池最大溢出数")
     DB_POOL_TIMEOUT: int = Field(default=30, description="连接池获取连接超时时间（秒）")
     DB_POOL_RECYCLE: int = Field(default=3600, description="连接池连接回收时间（秒）")
+    DB_POOL_PRE_PING: bool = Field(default=True, description="是否在使用连接前进行 ping 测试")
+    DB_POOL_CLASS: Literal["queue", "null"] = Field(
+        default="queue",
+        description="连接池类型：'queue' 使用 QueuePool，'null' 使用 NullPool（每次创建新连接，适合测试）"
+    )
 
     @property
     def database_url(self) -> str:
