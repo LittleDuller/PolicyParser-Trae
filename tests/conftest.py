@@ -16,7 +16,6 @@ def read_file():
 
 
 @pytest.fixture(scope="function")
-@pytest.mark.asyncio
 async def db_session() -> AsyncSession:
     """异步数据库会话 fixture"""
     async with get_db_session_context() as session:
@@ -24,7 +23,6 @@ async def db_session() -> AsyncSession:
 
 
 @pytest.fixture(scope="function")
-@pytest.mark.asyncio
 async def client() -> AsyncClient:
     """异步 HTTP 测试客户端 fixture"""
     transport = ASGITransport(app=app)
