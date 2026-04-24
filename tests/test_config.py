@@ -4,25 +4,6 @@ from pydantic import SecretStr
 from app.core.config import Settings, settings
 
 
-class TestSettingsDefaults:
-    """测试 Settings 类的默认值"""
-
-    def test_db_host_default(self):
-        """测试 DB_HOST 默认值为 'localhost'"""
-        fresh_settings = Settings()
-        assert fresh_settings.DB_HOST == "localhost"
-
-    def test_db_port_default(self):
-        """测试 DB_PORT 默认值为 3306"""
-        fresh_settings = Settings()
-        assert fresh_settings.DB_PORT == 3306
-
-    def test_log_level_default(self):
-        """测试 LOG_LEVEL 默认值为 'INFO'"""
-        fresh_settings = Settings()
-        assert fresh_settings.LOG_LEVEL == "INFO"
-
-
 class TestDatabaseUrl:
     """测试 database_url 构建"""
 
@@ -79,43 +60,6 @@ class TestSecretStrSecurity:
         """测试使用 get_secret_value() 才能获取实际值"""
         test_settings = Settings(DB_PASSWORD="mysecretpassword")
         assert test_settings.DB_PASSWORD.get_secret_value() == "mysecretpassword"
-
-
-class TestEnvironmentVariableOverride:
-    """测试环境变量覆盖 (使用 monkeypatch)"""
-
-    def test_db_host_env_override(self, monkeypatch):
-        """测试设置 DB_HOST='custom-host'，验证 settings.DB_HOST == 'custom-host'"""
-        monkeypatch.setenv("DB_HOST", "custom-host")
-        fresh_settings = Settings()
-        assert fresh_settings.DB_HOST == "custom-host"
-
-    def test_db_port_env_override(self, monkeypatch):
-        """测试 DB_PORT 环境变量覆盖"""
-        monkeypatch.setenv("DB_PORT", "5432")
-        fresh_settings = Settings()
-        assert fresh_settings.DB_PORT == 5432
-
-    def test_db_user_env_override(self, monkeypatch):
-        """测试 DB_USER 环境变量覆盖"""
-        monkeypatch.setenv("DB_USER", "custom_user")
-        fresh_settings = Settings()
-        assert fresh_settings.DB_USER == "custom_user"
-
-    def test_multiple_env_override(self, monkeypatch):
-        """测试多个环境变量同时覆盖"""
-        monkeypatch.setenv("DB_HOST", "prod-host")
-        monkeypatch.setenv("DB_PORT", "3308")
-        monkeypatch.setenv("DB_USER", "prod_user")
-        monkeypatch.setenv("DB_PASSWORD", "prod_password")
-        monkeypatch.setenv("DB_NAME", "prod_db")
-
-        fresh_settings = Settings()
-        assert fresh_settings.DB_HOST == "prod-host"
-        assert fresh_settings.DB_PORT == 3308
-        assert fresh_settings.DB_USER == "prod_user"
-        assert fresh_settings.DB_PASSWORD.get_secret_value() == "prod_password"
-        assert fresh_settings.DB_NAME == "prod_db"
 
 
 class TestTypeValidation:

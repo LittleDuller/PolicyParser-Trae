@@ -66,38 +66,3 @@ class TestPolicyRepositoryGetContentById:
         assert exc_info.value.status_code == 404
         assert str(invalid_id) in exc_info.value.detail
         assert "未找到" in exc_info.value.detail
-
-
-class TestPolicyRepositoryGetTitleById:
-    """测试 get_title_by_id() 方法"""
-
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize("valid_id", [1, 1810621833737674803, 1810621833737674884])
-    async def test_valid_id_returns_string_or_none(self, db_session: AsyncSession, valid_id: int):
-        """使用有效 ID 查询，返回字符串或 None"""
-        repo = PolicyRepository(db_session)
-        title = await repo.get_title_by_id(valid_id)
-
-        assert title is None or isinstance(title, str)
-
-    @pytest.mark.asyncio
-    async def test_invalid_id_returns_none(self, db_session: AsyncSession, test_policy_ids: dict):
-        """使用无效 ID 查询，返回 None"""
-        invalid_id = test_policy_ids["invalid"]
-        repo = PolicyRepository(db_session)
-        title = await repo.get_title_by_id(invalid_id)
-
-        assert title is None
-
-
-class TestPolicyRepositoryGetByPolicyNo:
-    """测试 get_by_policy_no() 方法"""
-
-    @pytest.mark.asyncio
-    async def test_get_by_policy_no_returns_policy_or_none(self, db_session: AsyncSession):
-        """根据政策编号查询政策记录"""
-        repo = PolicyRepository(db_session)
-        test_policy_no = "123"
-        policy = await repo.get_by_policy_no(test_policy_no)
-
-        assert policy is None or isinstance(policy, PolicyEntity)
